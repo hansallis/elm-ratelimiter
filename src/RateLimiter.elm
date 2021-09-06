@@ -1,4 +1,13 @@
-module RateLimiter exposing (Msg, RateLimiter, days, hours, minutes, slidingLog, seconds, sub, trigger, update, weeks)
+module RateLimiter exposing (Msg, RateLimiter, days, hours, minutes, seconds, slidingLog, sub, trigger, update, weeks)
+
+{-| This library provides a simple sliding log rate limiter. It should be fed a Posix.Posix using a Time.every subscription.
+
+
+# Constructor
+
+@docs slidingWindow
+
+-}
 
 import Dict exposing (Dict)
 import Time exposing (Posix)
@@ -52,16 +61,32 @@ sub (RateLimiter { windowInSeconds }) =
     Time.every (toFloat windowInSeconds * 10) Tick
 
 
+{-| Create a sliding log rate limiter that allows 5 operations every 5 minutes.
+
+    slidingLog 5 (minutes 5)
+
+-}
 slidingLog : Int -> TypedTime -> RateLimiter comparable
 slidingLog size window =
     RateLimiter { now = Nothing, size = size, windowInSeconds = window |> TypedTime.toSeconds |> round, buckets = Dict.empty }
 
 
+{-| Update the current time.
+-}
 update : Msg -> RateLimiter comparable -> RateLimiter comparable
 update (Tick now) (RateLimiter model) =
     RateLimiter { model | now = Just now }
 
 
+{-| Try to execute an operation. If allowed, the accept function is called with an updated RateLimiter instance and then returned. If not allowed, the reject argument is returned.
+
+    let
+        accept =
+            \rl -> ( { model | rateLimiter = rl }, expensiveHttpRequest RequestCompleted } )
+    in
+    RateLimiter.trigger rateLimiter identifier accept ( model, Cmd.none )
+
+-}
 trigger : RateLimiter comparable -> comparable -> (RateLimiter comparable -> response) -> response -> response
 trigger (RateLimiter ({ now, size, windowInSeconds, buckets } as state)) comp accept reject =
     case now of
