@@ -1,11 +1,31 @@
-module RateLimiter exposing (Msg, RateLimiter, days, hours, minutes, seconds, slidingLog, sub, trigger, update, weeks)
+module RateLimiter exposing
+    ( slidingLog, RateLimiter
+    , trigger
+    , hours, minutes, seconds, days, weeks
+    , update, sub, Msg
+    )
 
 {-| This library provides a simple sliding log rate limiter. It should be fed a Posix.Posix using a Time.every subscription.
 
 
 # Constructor
 
-@docs slidingWindow
+@docs slidingLog, RateLimiter
+
+
+# Triggering an operation
+
+@docs trigger
+
+
+# Defining window size
+
+@docs hours, minutes, seconds, days, weeks
+
+
+# Keeping time
+
+@docs update, sub, Msg
 
 -}
 
@@ -18,6 +38,8 @@ type alias Bucket =
     List Posix
 
 
+{-| Type representing a rate limiter
+-}
 type RateLimiter comparable
     = RateLimiter
         { now : Maybe Posix
@@ -27,35 +49,64 @@ type RateLimiter comparable
         }
 
 
+{-| Message to update current time
+-}
 type Msg
     = Tick Posix
 
 
+{-| A week
+
+    weeks 1
+
+-}
 weeks : Float -> TypedTime
 weeks count =
     days count |> TypedTime.multiply 7
 
 
+{-| A single day
+
+    days 1
+
+-}
 days : Float -> TypedTime
 days count =
     TypedTime.hours 24 |> TypedTime.multiply count
 
 
+{-| One and a half hours
+
+    hours 1.5
+
+-}
 hours : Float -> TypedTime
 hours =
     TypedTime.hours
 
 
+{-| 5 minutes
+
+    minutes 5
+
+-}
 minutes : Float -> TypedTime
 minutes =
     TypedTime.minutes
 
 
+{-| 10 seconds
+
+    seconds 10
+
+-}
 seconds : Float -> TypedTime
 seconds =
     TypedTime.seconds
 
 
+{-| Provides a suitable Time.every subscriptions
+-}
 sub : RateLimiter comparable -> Sub Msg
 sub (RateLimiter { windowInSeconds }) =
     Time.every (toFloat windowInSeconds * 10) Tick
