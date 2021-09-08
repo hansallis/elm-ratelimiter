@@ -2,7 +2,7 @@ module RateLimiter exposing
     ( slidingLog, RateLimiter
     , trigger
     , hours, minutes, seconds, days, weeks
-    , update, sub, Msg
+    , update, sub, command, Msg
     )
 
 {-| This library provides a simple sliding log rate limiter. It should be fed a Posix.Posix using a Time.every subscription.
@@ -25,11 +25,12 @@ module RateLimiter exposing
 
 # Keeping time
 
-@docs update, sub, Msg
+@docs update, sub, command, Msg
 
 -}
 
 import Dict exposing (Dict)
+import Task
 import Time exposing (Posix)
 import TypedTime exposing (TypedTime)
 
@@ -110,6 +111,13 @@ seconds =
 sub : RateLimiter comparable -> Sub Msg
 sub (RateLimiter { windowInSeconds }) =
     Time.every (toFloat windowInSeconds * 10) Tick
+
+
+{-| Provides a command to initialize the current time
+-}
+command : Cmd Msg
+command =
+    Time.now |> Task.perform Tick
 
 
 {-| Create a sliding log rate limiter that allows 5 operations every 5 minutes.
