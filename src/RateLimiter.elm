@@ -21,11 +21,6 @@ module RateLimiter exposing
 
 @docs hours, minutes, seconds, days, weeks
 
-
-# Keeping time
-
-@docs update, sub, command, Msg
-
 -}
 
 import Dict exposing (Dict)
