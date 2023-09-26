@@ -19,8 +19,7 @@ import RateLimiter
 
 
 type Msg
-    = RLMsg RateLimiter.Msg
-    | ExpensiveOperation String
+    = ExpensiveOperation String
     | RequestCompleted (Result Http.Error ())
 
 
@@ -34,9 +33,6 @@ main = Browser.element
     , update =
         \msg ({ rateLimiter } as model) ->
             case msg of
-                RLMsg msg_ ->
-                    ( { rateLimiter = RateLimiter.update msg_ rateLimiter }, Cmd.none )
-
                 ExpensiveOperation identifier ->
                     let
                         accept =
@@ -46,6 +42,6 @@ main = Browser.element
 
                 RequestCompleted _ ->
                     ( model, Cmd.none )
-    , subscriptions = \{ rateLimiter } -> RateLimiter.sub rateLimiter |> Sub.map RLMsg
+    , subscriptions = Sub.none
     }
 ```
